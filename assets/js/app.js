@@ -35,11 +35,36 @@ import {Socket} from "phoenix"
 import {LiveSocket} from "phoenix_live_view"
 import topbar from "../vendor/topbar"
 import "./chat"        // depends on user_socket.js being evaluated first
+import darkMode from "./dark_mode.js"   // dark-/light-mode manager
+
+// Expose dark mode manager globally for debugging / other scripts
+window.darkMode = darkMode
+
+// --------------------------------------------------------------------
+// LiveView Hooks
+// --------------------------------------------------------------------
+
+const Hooks = {
+  /**
+   * DarkModeToggle
+   * A simple hook that toggles the dark-mode class on click.
+   * The element using this hook should be the button with id="theme-toggle".
+   */
+  DarkModeToggle: {
+    mounted () {
+      this.el.addEventListener("click", () => {
+        window.darkMode.toggle()
+        // icon swapping (handled via CSS by hiding/showing)
+      })
+    }
+  }
+}
 
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 let liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
-  params: {_csrf_token: csrfToken}
+  params: {_csrf_token: csrfToken},
+  hooks: Hooks
 })
 
 // Show progress bar on live navigation and form submits

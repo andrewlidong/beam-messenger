@@ -6,6 +6,7 @@ defmodule Messenger.Accounts.User do
     field :username, :string
     field :email, :string
     field :password_hash, :string
+    field :avatar, :string
     # Virtual field – not persisted, only used for validation/hash generation
     field :password, :string, virtual: true
 
@@ -38,11 +39,22 @@ defmodule Messenger.Accounts.User do
   end
 
   @doc """
+  Generic changeset used by the Accounts context for simple updates where
+  only the username and/or e-mail might change. (No password handling.)
+  """
+  def changeset(user, attrs) do
+    user
+    |> base_changeset(attrs)
+    |> cast(attrs, [:avatar])
+  end
+
+  @doc """
   Changeset for updating user profile (username / email only).
   """
   def update_changeset(user, attrs) do
     user
     |> base_changeset(attrs)
+    |> cast(attrs, [:avatar])
   end
 
   @doc """

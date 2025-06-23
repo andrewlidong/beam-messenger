@@ -3,3 +3,123 @@
 @import "tailwindcss/utilities";
 
 /* This file is for your main application CSS */
+
+/* --------------------------------------------------------------------------
+ *  Dark-Mode Support
+ * --------------------------------------------------------------------------
+ *  Tailwind’s `dark` variant is enabled via the `.dark` class on <html>.
+ *  The following custom utilities/components provide a smoother theme
+ *  experience and tweak parts that are not covered by plain Tailwind classes
+ *  (e.g. shadows, transitions, message bubbles).
+ * ------------------------------------------------------------------------ */
+
+@layer base {
+  /* Smooth colour transition when toggling themes */
+  html {
+    @apply transition-colors duration-300 ease-in-out;
+  }
+
+  body {
+    @apply bg-white text-zinc-900;
+  }
+
+  html.dark body {
+    @apply bg-zinc-900 text-zinc-100;
+  }
+}
+
+/* ------------------------------------------------------------------------
+ *  Chat Interface – Message Bubbles
+ * --------------------------------------------------------------------- */
+@layer components {
+  /* Light mode bubbles */
+  .msg-bubble-light {
+    @apply bg-gray-200 text-zinc-900;
+  }
+
+  .msg-bubble-light.self {
+    @apply bg-blue-500 text-white;
+  }
+
+  /* Dark mode bubbles */
+  html.dark .msg-bubble-light {
+    @apply bg-zinc-700 text-zinc-100;
+  }
+
+  html.dark .msg-bubble-light.self {
+    @apply bg-blue-600 text-white;
+  }
+}
+
+/* ------------------------------------------------------------------------
+ *  Forms / Inputs
+ * --------------------------------------------------------------------- */
+@layer components {
+  input,
+  textarea,
+  select {
+    @apply transition-colors duration-200;
+  }
+
+  html:not(.dark) input,
+  html:not(.dark) textarea,
+  html:not(.dark) select {
+    @apply bg-white border-gray-300 text-zinc-900 placeholder-gray-400;
+  }
+
+  html.dark input,
+  html.dark textarea,
+  html.dark select {
+    @apply bg-zinc-800 border-zinc-600 text-zinc-100 placeholder-zinc-500;
+  }
+}
+
+/* ------------------------------------------------------------------------
+ *  Buttons / Links
+ * --------------------------------------------------------------------- */
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center px-4 py-2 rounded-md font-medium
+           text-sm transition-colors duration-200;
+  }
+
+  /* Light mode */
+  .btn-primary {
+    @apply bg-blue-600 text-white hover:bg-blue-700;
+  }
+
+  /* Dark mode */
+  html.dark .btn-primary {
+    @apply bg-blue-500 hover:bg-blue-600;
+  }
+}
+
+/* ------------------------------------------------------------------------
+ *  Navigation / Header
+ * --------------------------------------------------------------------- */
+@layer utilities {
+  .header-link {
+    @apply text-blue-600 hover:text-blue-800 transition-colors duration-200;
+  }
+
+  html.dark .header-link {
+    @apply text-blue-400 hover:text-blue-300;
+  }
+}
+
+/* ------------------------------------------------------------------------
+ *  Misc Utilities
+ * --------------------------------------------------------------------- */
+@layer utilities {
+  /* Hide scrollbars in dark mode for a cleaner look (WebKit) */
+  html.dark ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  html.dark ::-webkit-scrollbar-track {
+    @apply bg-zinc-800;
+  }
+  html.dark ::-webkit-scrollbar-thumb {
+    @apply bg-zinc-700 rounded-lg;
+  }
+}

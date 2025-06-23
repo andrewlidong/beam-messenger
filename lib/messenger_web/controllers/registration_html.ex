@@ -44,7 +44,12 @@ defmodule MessengerWeb.RegistrationHTML do
                 Username
               </label>
               <div class="mt-1">
-                <%= text_input f, :username, required: true, class: "appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" %>
+                <input type="text"
+                       name="user[username]"
+                       id="user_username"
+                       required
+                       value={Phoenix.HTML.Form.input_value(f, :username)}
+                       class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
                 <%= error_tag f, :username %>
               </div>
             </div>
@@ -54,7 +59,12 @@ defmodule MessengerWeb.RegistrationHTML do
                 Email address
               </label>
               <div class="mt-1">
-                <%= email_input f, :email, required: true, class: "appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" %>
+                <input type="email"
+                       name="user[email]"
+                       id="user_email"
+                       required
+                       value={Phoenix.HTML.Form.input_value(f, :email)}
+                       class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
                 <%= error_tag f, :email %>
               </div>
             </div>
@@ -64,7 +74,11 @@ defmodule MessengerWeb.RegistrationHTML do
                 Password
               </label>
               <div class="mt-1">
-                <%= password_input f, :password, required: true, class: "appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" %>
+                <input type="password"
+                       name="user[password]"
+                       id="user_password"
+                       required
+                       class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
                 <%= error_tag f, :password %>
               </div>
               <p class="mt-1 text-xs text-gray-500">
@@ -162,7 +176,12 @@ defmodule MessengerWeb.RegistrationHTML do
                         Username
                       </label>
                       <div class="mt-1">
-                        <%= text_input f, :username, required: true, class: "appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" %>
+                        <input type="text"
+                               name="user[username]"
+                               id="user_username_edit"
+                               required
+                               value={Phoenix.HTML.Form.input_value(f, :username)}
+                               class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
                         <%= error_tag f, :username %>
                       </div>
                     </div>
@@ -172,7 +191,12 @@ defmodule MessengerWeb.RegistrationHTML do
                         Email address
                       </label>
                       <div class="mt-1">
-                        <%= email_input f, :email, required: true, class: "appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" %>
+                        <input type="email"
+                               name="user[email]"
+                               id="user_email_edit"
+                               required
+                               value={Phoenix.HTML.Form.input_value(f, :email)}
+                               class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
                         <%= error_tag f, :email %>
                       </div>
                     </div>
@@ -272,7 +296,11 @@ defmodule MessengerWeb.RegistrationHTML do
                     New password
                   </label>
                   <div class="mt-1">
-                    <%= password_input f, :password, required: true, class: "appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" %>
+                    <input type="password"
+                           name="user[password]"
+                           id="user_new_password"
+                           required
+                           class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
                     <%= error_tag f, :password %>
                   </div>
                 </div>
@@ -298,22 +326,14 @@ defmodule MessengerWeb.RegistrationHTML do
   Generates HTML for form error messages.
   """
   defp error_tag(form, field) do
-    Enum.map(Keyword.get_values(form.errors, field), fn error ->
-      content_tag(:span, translate_error(error),
-        class: "block mt-1 text-sm text-red-600",
-        phx_feedback_for: input_name(form, field)
-      )
-    end)
+    for error <- Keyword.get_values(form.errors, field) do
+      message = MessengerWeb.CoreComponents.translate_error(error)
+      assigns = %{message: message}
+
+      ~H"""
+      <span class="block mt-1 text-sm text-red-600"><%= @message %></span>
+      """
+    end
   end
 
-  @doc """
-  Translates an error message.
-  """
-  defp translate_error({msg, opts}) do
-    # Because the error messages we show in our forms and APIs
-    # are defined inside Ecto, we need to translate them dynamically.
-    Enum.reduce(opts, msg, fn {key, value}, acc ->
-      String.replace(acc, "%{#{key}}", fn _ -> to_string(value) end)
-    end)
-  end
 end
