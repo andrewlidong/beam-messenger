@@ -14,12 +14,12 @@ defmodule MessengerWeb.SessionController do
   @doc """
   Processes login attempts and creates a new session if credentials are valid.
   """
-  def create(conn, %{"user" => %{"username" => username, "password" => password}}) do
+  def create(conn, %{"user" => user_params = %{"username" => username, "password" => password}}) do
     case Accounts.authenticate_by_username_and_password(username, password) do
       {:ok, user} ->
         conn
         |> put_flash(:info, "Welcome back!")
-        |> UserAuth.log_in_user(user)
+        |> UserAuth.log_in_user(user, user_params)
 
       {:error, :invalid_credentials} ->
         conn
@@ -29,12 +29,12 @@ defmodule MessengerWeb.SessionController do
   end
 
   # Alternative login with email
-  def create(conn, %{"user" => %{"email" => email, "password" => password}}) do
+  def create(conn, %{"user" => user_params = %{"email" => email, "password" => password}}) do
     case Accounts.authenticate_by_email_and_password(email, password) do
       {:ok, user} ->
         conn
         |> put_flash(:info, "Welcome back!")
-        |> UserAuth.log_in_user(user)
+        |> UserAuth.log_in_user(user, user_params)
 
       {:error, :invalid_credentials} ->
         conn

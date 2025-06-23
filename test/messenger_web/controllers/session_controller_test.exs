@@ -137,7 +137,9 @@ defmodule MessengerWeb.SessionControllerTest do
         |> log_in_user(user)
         |> delete(~p"/logout")
 
-      refute conn.resp_cookies["_messenger_web_user_remember_me"]
+      # Check that the cookie is set with max_age: 0 (deleted)
+      assert conn.resp_cookies["_messenger_web_user_remember_me"]
+      assert conn.resp_cookies["_messenger_web_user_remember_me"].max_age == 0
     end
 
     test "clears user token cookie", %{conn: conn, user: user} do
@@ -147,7 +149,9 @@ defmodule MessengerWeb.SessionControllerTest do
         |> log_in_user(user)
         |> delete(~p"/logout")
 
-      refute conn.resp_cookies["user_token"]
+      # Check that the cookie is set with max_age: 0 (deleted)
+      assert conn.resp_cookies["user_token"]
+      assert conn.resp_cookies["user_token"].max_age == 0
     end
   end
 

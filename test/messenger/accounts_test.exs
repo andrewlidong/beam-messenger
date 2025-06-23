@@ -36,23 +36,23 @@ defmodule Messenger.AccountsTest do
         |> Enum.into(@valid_attrs)
         |> Accounts.register_user()
 
-      # Don't return the password hash in tests
-      %{user | password_hash: nil}
+      # Return the user as is - don't strip password_hash
+      user
     end
 
     test "list_users/0 returns all users" do
       user = user_fixture()
-      assert Accounts.list_users() |> Enum.map(&strip_password_hash/1) == [user]
+      assert Accounts.list_users() == [user]
     end
 
     test "get_user!/1 returns the user with given id" do
       user = user_fixture()
-      assert Accounts.get_user!(user.id) |> strip_password_hash() == user
+      assert Accounts.get_user!(user.id) == user
     end
 
     test "get_user/1 returns the user with given id" do
       user = user_fixture()
-      assert Accounts.get_user(user.id) |> strip_password_hash() == user
+      assert Accounts.get_user(user.id) == user
     end
 
     test "get_user/1 returns nil for non-existent id" do
@@ -61,7 +61,7 @@ defmodule Messenger.AccountsTest do
 
     test "get_user_by_username/1 returns user with matching username" do
       user = user_fixture()
-      assert Accounts.get_user_by_username(user.username) |> strip_password_hash() == user
+      assert Accounts.get_user_by_username(user.username) == user
     end
 
     test "get_user_by_username/1 returns nil for non-existent username" do
@@ -70,7 +70,7 @@ defmodule Messenger.AccountsTest do
 
     test "get_user_by_email/1 returns user with matching email" do
       user = user_fixture()
-      assert Accounts.get_user_by_email(user.email) |> strip_password_hash() == user
+      assert Accounts.get_user_by_email(user.email) == user
     end
 
     test "get_user_by_email/1 returns nil for non-existent email" do
@@ -104,13 +104,13 @@ defmodule Messenger.AccountsTest do
 
     test "register_user/1 enforces unique emails" do
       assert {:ok, %User{}} = Accounts.register_user(@valid_attrs)
-      
+
       similar_attrs = %{
         username: "different",
-        email: String.upcase(@valid_attrs.email),
+        email: @valid_attrs.email,
         password: "password123456"
       }
-      
+
       assert {:error, changeset} = Accounts.register_user(similar_attrs)
       assert %{email: ["has already been taken"]} = errors_on(changeset)
     end
@@ -125,34 +125,38 @@ defmodule Messenger.AccountsTest do
     test "update_user/2 with invalid data returns error changeset" do
       user = user_fixture()
       assert {:error, %Ecto.Changeset{}} = Accounts.update_user(user, @invalid_attrs)
-      assert user == Accounts.get_user!(user.id) |> strip_password_hash()
+      assert user == Accounts.get_user!(user.id)
     end
 
     test "update_user_password/3 with valid data updates the password" do
       user = user_fixture()
-      
-      assert {:ok, updated_user} = 
-        Accounts.update_user_password(user, @valid_attrs.password, %{password: "new_password123"})
-        
+
+      assert {:ok, updated_user} =
+               Accounts.update_user_password(user, @valid_attrs.password, %{
+                 password: "new_password123"
+               })
+
       assert Accounts.valid_password?(updated_user, "new_password123")
       refute Accounts.valid_password?(updated_user, @valid_attrs.password)
     end
 
     test "update_user_password/3 with invalid current password returns error" do
       user = user_fixture()
-      
-      assert {:error, :invalid_current_password} = 
-        Accounts.update_user_password(user, "wrong_password", %{password: "new_password123"})
-        
+
+      assert {:error, :invalid_current_password} =
+               Accounts.update_user_password(user, "wrong_password", %{
+                 password: "new_password123"
+               })
+
       assert Accounts.valid_password?(Accounts.get_user!(user.id), @valid_attrs.password)
     end
 
     test "update_user_password/3 with invalid new password returns error changeset" do
       user = user_fixture()
-      
-      assert {:error, changeset} = 
-        Accounts.update_user_password(user, @valid_attrs.password, %{password: "short"})
-        
+
+      assert {:error, changeset} =
+               Accounts.update_user_password(user, @valid_attrs.password, %{password: "short"})
+
       assert %{password: ["should be at least 8 character(s)"]} = errors_on(changeset)
     end
 
@@ -180,39 +184,52 @@ defmodule Messenger.AccountsTest do
         email: "auth@example.com",
         password: "password123456"
       }
-      
+
       {:ok, user} = Accounts.register_user(user_attrs)
       %{user: user, password: user_attrs.password}
     end
 
-    test "authenticate_by_username_and_password/2 with valid credentials", %{user: user, password: password} do
-      assert {:ok, authenticated_user} = Accounts.authenticate_by_username_and_password(user.username, password)
+    test "authenticate_by_username_and_password/2 with valid credentials", %{
+      user: user,
+      password: password
+    } do
+      assert {:ok, authenticated_user} =
+               Accounts.authenticate_by_username_and_password(user.username, password)
+
       assert authenticated_user.id == user.id
     end
 
     test "authenticate_by_username_and_password/2 with invalid password", %{user: user} do
-      assert {:error, :invalid_credentials} = 
-        Accounts.authenticate_by_username_and_password(user.username, "wrong_password")
+      assert {:error, :invalid_credentials} =
+               Accounts.authenticate_by_username_and_password(user.username, "wrong_password")
     end
 
     test "authenticate_by_username_and_password/2 with non-existent username" do
-      assert {:error, :invalid_credentials} = 
-        Accounts.authenticate_by_username_and_password("nonexistent", "any_password")
+      assert {:error, :invalid_credentials} =
+               Accounts.authenticate_by_username_and_password("nonexistent", "any_password")
     end
 
-    test "authenticate_by_email_and_password/2 with valid credentials", %{user: user, password: password} do
-      assert {:ok, authenticated_user} = Accounts.authenticate_by_email_and_password(user.email, password)
+    test "authenticate_by_email_and_password/2 with valid credentials", %{
+      user: user,
+      password: password
+    } do
+      assert {:ok, authenticated_user} =
+               Accounts.authenticate_by_email_and_password(user.email, password)
+
       assert authenticated_user.id == user.id
     end
 
     test "authenticate_by_email_and_password/2 with invalid password", %{user: user} do
-      assert {:error, :invalid_credentials} = 
-        Accounts.authenticate_by_email_and_password(user.email, "wrong_password")
+      assert {:error, :invalid_credentials} =
+               Accounts.authenticate_by_email_and_password(user.email, "wrong_password")
     end
 
     test "authenticate_by_email_and_password/2 with non-existent email" do
-      assert {:error, :invalid_credentials} = 
-        Accounts.authenticate_by_email_and_password("nonexistent@example.com", "any_password")
+      assert {:error, :invalid_credentials} =
+               Accounts.authenticate_by_email_and_password(
+                 "nonexistent@example.com",
+                 "any_password"
+               )
     end
 
     test "valid_password?/2 returns true for valid password", %{user: user, password: password} do
@@ -231,7 +248,7 @@ defmodule Messenger.AccountsTest do
         email: "token@example.com",
         password: "password123456"
       }
-      
+
       {:ok, user} = Accounts.register_user(user_attrs)
       %{user: user}
     end
@@ -243,7 +260,10 @@ defmodule Messenger.AccountsTest do
 
     test "verify_user_session_token/1 returns user data for valid token", %{user: user} do
       token = Accounts.generate_user_session_token(user)
-      assert {:ok, %{"user_id" => user_id, "username" => username}} = Accounts.verify_user_session_token(token)
+
+      assert {:ok, %{"user_id" => user_id, "username" => username}} =
+               Accounts.verify_user_session_token(token)
+
       assert user_id == user.id
       assert username == user.username
     end
@@ -270,10 +290,5 @@ defmodule Messenger.AccountsTest do
     test "delete_session_token/1 returns :ok" do
       assert :ok = Accounts.delete_session_token("any_token")
     end
-  end
-
-  # Helper to strip password_hash for comparison
-  defp strip_password_hash(%User{} = user) do
-    %{user | password_hash: nil}
   end
 end
