@@ -1,14 +1,13 @@
 defmodule MessengerWeb.UserAuth do
   @moduledoc """
   Authentication module for Messenger.
-  
+
   Handles user authentication, session management, and related plugs.
   """
   import Plug.Conn
   import Phoenix.Controller
 
   alias Messenger.Accounts
-  alias MessengerWeb.Router.Helpers, as: Routes
 
   # Make the remember me cookie valid for 60 days.
   # If you want the remember me functionality, change this.
@@ -16,9 +15,21 @@ defmodule MessengerWeb.UserAuth do
   @remember_me_cookie "_messenger_web_user_remember_me"
   @remember_me_options [sign: true, max_age: @max_age, same_site: "Lax"]
 
+  # Plug callbacks for use in router pipelines
+  def init(opts), do: opts
+
+  def call(conn, opts) do
+    case opts do
+      :fetch_current_user -> fetch_current_user(conn, [])
+      :require_authenticated_user -> require_authenticated_user(conn, [])
+      :redirect_if_user_is_authenticated -> redirect_if_user_is_authenticated(conn, [])
+      _ -> conn
+    end
+  end
+
   @doc """
   Logs the user in.
-  
+
   It renews the session ID and clears the whole session to avoid fixation attacks.
   It sets a `:user_token` in the session, which is used to authenticate API requests.
   It also sets a cookie with the user token for WebSocket authentication.
@@ -32,7 +43,7 @@ defmodule MessengerWeb.UserAuth do
     |> put_session(:user_token, token)
     |> put_session(:live_socket_id, "users_sessions:#{Base.url_encode64(token)}")
     |> maybe_write_remember_me_cookie(token, params)
-    |> put_resp_cookie("user_token", token, [sign: true, max_age: @max_age])
+    |> put_resp_cookie("user_token", token, sign: true, max_age: @max_age)
     |> redirect(to: user_return_to || signed_in_path(conn))
   end
 
@@ -56,7 +67,7 @@ defmodule MessengerWeb.UserAuth do
 
   @doc """
   Logs the user out.
-  
+
   It clears all session data for safety. It also invalidates the user token.
   """
   def log_out_user(conn) do
@@ -71,7 +82,7 @@ defmodule MessengerWeb.UserAuth do
     |> renew_session()
     |> delete_resp_cookie(@remember_me_cookie)
     |> delete_resp_cookie("user_token")
-    |> redirect(to: Routes.session_path(conn, :new))
+    |> redirect(to: "/login")
   end
 
   @doc """
@@ -99,7 +110,7 @@ defmodule MessengerWeb.UserAuth do
 
   @doc """
   Used for routes that require the user to be authenticated.
-  
+
   If not authenticated, redirects to login page.
   """
   def require_authenticated_user(conn, _opts) do
@@ -109,14 +120,14 @@ defmodule MessengerWeb.UserAuth do
       conn
       |> put_flash(:error, "You must log in to access this page.")
       |> maybe_store_return_to()
-      |> redirect(to: Routes.session_path(conn, :new))
+      |> redirect(to: "/login")
       |> halt()
     end
   end
 
   @doc """
   Used for routes that require the user to not be authenticated.
-  
+
   If authenticated, redirects to the main page.
   """
   def redirect_if_user_is_authenticated(conn, _opts) do
