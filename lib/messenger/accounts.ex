@@ -277,12 +277,11 @@ defmodule Messenger.Accounts do
   Generates a session token for a user.
   """
   def generate_user_session_token(%User{} = user) do
-    {token, user_token} = Phoenix.Token.sign(
+    Phoenix.Token.sign(
       MessengerWeb.Endpoint,
       "user socket",
       %{"user_id" => user.id, "username" => user.username}
     )
-    token
   end
 
   @doc """
@@ -296,4 +295,32 @@ defmodule Messenger.Accounts do
       max_age: max_age
     )
   end
+
+  # ------------------------------------------------------------------
+  # Session-token helpers expected by MessengerWeb.UserAuth
+  # ------------------------------------------------------------------
+
+  @doc """
+  Retrieves the user associated with the given session `token`.
+
+  It decodes & verifies the signed token and fetches the user from the DB.
+  Returns `nil` if the token is invalid, expired, or the user cannot be found.
+  """
+  def get_user_by_session_token(token) when is_binary(token) do
+    with {:ok, %{"user_id" => user_id}} <- verify_user_session_token(token) do
+      get_user(user_id)
+    else
+      _ -> nil
+    end
+  end
+
+  @doc """
+  Placeholder for deleting a session token.
+
+  Since we use stateless, signed tokens (Phoenix.Token), there is no
+  server-side token store to invalidate.  We simply return `:ok` so that
+  the `UserAuth` module can treat the call as successful.
+  """
+  @spec delete_session_token(String.t()) :: :ok
+  def delete_session_token(_token), do: :ok
 end

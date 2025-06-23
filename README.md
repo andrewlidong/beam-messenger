@@ -11,10 +11,14 @@ It demonstrates how you can leverage the BEAM (Erlang VM) for low-latency chat, 
 * Persists chat history to PostgreSQL.
 * Provides a responsive Tailwind-CSS UI that works on mobile and desktop.
 * Exposes a WebSocket API that could be consumed by native or web clients.
+* Full user-authentication (register, login, session, remember-me).
+* SQLite (dev) or PostgreSQL (prod) persistence with Ecto migrations.
+* Container-ready (Docker & docker-compose) and IaC (Terraform) samples.
+* Comprehensive test-suite (`mix test`) for critical paths.
 
 ---
 
-## 2  Getting Started
+## 2  Development Setup
 
 ### Prerequisites
 | Tool | Version | Notes |
@@ -61,7 +65,47 @@ Hot-reload for backend & frontend changes is enabled in dev.
 
 ---
 
-## 3  Project Structure (abridged)
+## 3  Docker Setup
+
+```bash
+# Build & start dev stack (app + Postgres)
+docker compose up --build
+
+# Tail the logs
+docker compose logs -f app
+```
+The container mounts the source tree for live-reloading.  
+Variables can be overridden in `docker-compose.yml`.
+
+---
+
+## 4  Running Tests
+
+```bash
+mix test        # unit / integration tests
+mix coveralls   # coverage (ensure COVERALLS_TOKEN in CI)
+```
+
+---
+
+## 5  Deployment with Terraform (💻→☁️)
+
+Terraform manifests live in `terraform/`.
+
+```bash
+cd terraform
+terraform init -backend-config="bucket=beam-messenger-tf"
+terraform plan  -var="environment=prod"
+terraform apply -var="environment=prod"
+```
+The sample stack provisions:
+* VPC with public/private subnets
+* RDS Postgres
+* ECS Fargate cluster + ALB
+
+---
+
+## 6  Project Structure (abridged)
 
 ```
 beam-messenger/
@@ -90,7 +134,29 @@ beam-messenger/
 
 ---
 
-## 4  Key Features & Technologies
+## 7  Architecture Overview
+
+BEAM Messenger follows a classic **Phoenix + Ecto** architecture:
+
+```
+┌───────────────┐   WebSocket   ┌──────────────┐
+│   Browser     │◄────────────►│  Phoenix     │
+│  LiveView UI  │               │  Channels    │
+└───────────────┘               │    (BEAM)    │
+        ▲ HTTP/HTML             └──────┬───────┘
+        │                              ▼
+        │                       ┌──────────────┐
+        └──────────────────────►│   Ecto Repo  │
+                                │  PostgreSQL  │
+                                └──────────────┘
+```
+
+Assets are bundled with **esbuild** & **Tailwind**.  
+Container images are published and run on **ECS Fargate** (sample IaC).
+
+---
+
+## 8  Key Technologies
 
 | Area | Tech | Purpose |
 |------|------|---------|
@@ -104,7 +170,21 @@ beam-messenger/
 
 ---
 
-## 5  How to Contribute
+## 9  API Reference (excerpt)
+
+| Type | Endpoint / Topic | Payload | Notes |
+|------|------------------|---------|-------|
+| REST | `POST /login`    | `{username,email,password}` | returns session cookie |
+| REST | `POST /register` | `{username,email,password}` | creates account |
+| WS   | `chat:ROOM`      | `"new_message"` `{text}` | broadcast message |
+| WS   | `chat:ROOM`      | `"typing"` `{typing}` | typing indicator |
+| WS   | `chat:ROOM`      | `"status"` `{status}` | away / online |
+
+More endpoints live in docs/api.md.
+
+---
+
+## 10  Contributing
 
 1. Fork the repository and create a feature branch:
    ```bash
@@ -123,16 +203,30 @@ All contributions—bug fixes, docs, tests, or features—are welcome!
 
 ---
 
-## 6  Future Improvements / Roadmap
+## 11  Troubleshooting
+
+| Symptom | Fix |
+|---------|-----|
+| Multiple guest users appear | Ensure only one browser tab is open or disable LiveView hot-reload in prod |
+| `mix ecto.create` fails | Check `DATABASE_URL`, Postgres running, correct credentials |
+| Port 4000 already in use | `lsof -i :4000` then `kill -9 <PID>` |
+| Docker build fails on assets | Delete `assets/node_modules` and rebuild |
+
+---
+
+## 12  Future Improvements / Roadmap
 
 - ✅ Basic chat rooms & presence  
-- [ ] User registration/login UI  
+- ✅ User registration/login UI  
+- ✅ Unit tests for Accounts & Sessions  
+- ✅ Docker & docker-compose dev stack  
+- ✅ Terraform sample for AWS Fargate  
 - [ ] File & image sharing (S3)  
 - [ ] Push notifications (Web + mobile)  
 - [ ] End-to-end encrypted rooms  
 - [ ] Admin dashboard & moderation tools  
+- [ ] CI/CD pipeline (GitHub Actions)  
 - [ ] Horizontal scaling example with Redis & clustering  
-- [ ] CI/CD pipeline definition (GitHub Actions)  
 
 Have an idea? Open an issue or start a discussion!
 
