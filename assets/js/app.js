@@ -1,5 +1,18 @@
 // If you want to use Phoenix channels, run `mix help phx.gen.channel`
 // to get started and then uncomment the line below.
+/*
+ * IMPORTANT:  Dependency Order
+ * --------------------------------------------------------------------------
+ * The `user_socket.js` module establishes (and memoizes) a singleton
+ * WebSocket connection for the entire browser session.  Modules that need
+ * to communicate over Phoenix Channels (e.g. `chat.js`) expect that socket
+ * instance to be initialised first.
+ *
+ * Keep the import order as follows:
+ *   1. `user_socket.js`  – creates / memoises the Socket.
+ *   2. `chat.js`         – builds higher-level chat abstractions on top of
+ *                          the previously-created Socket.
+ */
 import "./user_socket.js"
 
 // You can include dependencies in two ways.
@@ -21,7 +34,7 @@ import "phoenix_html"
 import {Socket} from "phoenix"
 import {LiveSocket} from "phoenix_live_view"
 import topbar from "../vendor/topbar"
-import "./chat"
+import "./chat"        // depends on user_socket.js being evaluated first
 
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 let liveSocket = new LiveSocket("/live", Socket, {
@@ -42,4 +55,3 @@ liveSocket.connect()
 // >> liveSocket.enableLatencySim(1000)  // enabled for duration of browser session
 // >> liveSocket.disableLatencySim()
 window.liveSocket = liveSocket
-
