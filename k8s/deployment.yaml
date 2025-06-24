@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: beam-messenger
+  labels:
+    app: beam-messenger
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: beam-messenger
+  template:
+    metadata:
+      labels:
+        app: beam-messenger
+    spec:
+      containers:
+      - name: beam-messenger
+        image: beam-messenger:latest
+        ports:
+        - containerPort: 4000
+        env:
+        - name: PHX_HOST
+          value: "beam-messenger.local"
+        - name: SECRET_KEY_BASE
+          valueFrom:
+            secretKeyRef:
+              name: beam-messenger-secrets
+              key: secret-key-base
+        - name: DATABASE_PATH
+          value: "/app/data/messenger.db"
+        - name: PHX_SERVER
+          value: "true"
+        - name: MIX_ENV
+          value: "prod"
+        volumeMounts:
+        - name: database-storage
+          mountPath: /app/data
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 4000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 4000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+      volumes:
+      - name: database-storage
+        persistentVolumeClaim:
+          claimName: beam-messenger-pvc
