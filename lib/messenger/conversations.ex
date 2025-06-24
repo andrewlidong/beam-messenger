@@ -74,8 +74,7 @@ defmodule Messenger.Conversations do
   def create_group_conversation(creator_id, name, description \\ nil, participant_ids \\ []) do
     Repo.transaction(fn ->
       # Create conversation
-      {:ok, conversation} = 
-        %Conversation{}
+      case %Conversation{}
         |> Conversation.changeset(%{
           type: "group",
           name: name,
@@ -83,17 +82,21 @@ defmodule Messenger.Conversations do
           created_by_id: creator_id,
           is_active: true
         })
-        |> Repo.insert()
+        |> Repo.insert() do
+        {:ok, conversation} ->
+          # Add creator as admin
+          {:ok, _} = create_conversation_participant(conversation.id, creator_id, "admin")
 
-      # Add creator as admin
-      {:ok, _} = create_conversation_participant(conversation.id, creator_id, "admin")
+          # Add other participants
+          Enum.each(participant_ids, fn user_id ->
+            create_conversation_participant(conversation.id, user_id)
+          end)
 
-      # Add other participants
-      Enum.each(participant_ids, fn user_id ->
-        create_conversation_participant(conversation.id, user_id)
-      end)
-
-      conversation
+          conversation
+          
+        {:error, changeset} ->
+          Repo.rollback(changeset)
+      end
     end)
   end
 
