@@ -1,0 +1,86 @@
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+  <div class="mx-auto max-w-2xl px-4 py-8">
+    <div class="mb-6">
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Create New Group</h1>
+      <p class="mt-2 text-gray-600 dark:text-gray-400">Start a group conversation with multiple people.</p>
+    </div>
+
+    <div class="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800">
+      <form action="/conversations/groups" method="post" class="p-6 space-y-6">
+        <input type="hidden" name="_csrf_token" value={get_csrf_token()} />
+
+        <div>
+          <label for="group_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Group Name
+          </label>
+          <input
+            type="text"
+            id="group_name"
+            name="group[name]"
+            required
+            class="block w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500"
+            placeholder="Enter group name"
+          />
+        </div>
+
+        <div>
+          <label for="group_description" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Description (Optional)
+          </label>
+          <textarea
+            id="group_description"
+            name="group[description]"
+            rows="3"
+            class="block w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500"
+            placeholder="Enter group description"
+          ></textarea>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Add Participants
+          </label>
+          <div class="space-y-2 max-h-64 overflow-y-auto border border-gray-300 dark:border-gray-600 rounded-lg p-3">
+            <%= for user <- @users do %>
+              <%= if user.id != @current_user.id do %>
+                <label class="flex items-center">
+                  <input
+                    type="checkbox"
+                    name="group[participant_ids][]"
+                    value={user.id}
+                    class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <div class="ml-3 flex items-center">
+                    <div class="h-6 w-6 rounded-full bg-blue-600 flex items-center justify-center mr-2">
+                      <span class="text-xs font-medium text-white">
+                        <%= String.first(user.username) |> String.upcase() %>
+                      </span>
+                    </div>
+                    <span class="text-sm text-gray-900 dark:text-white">
+                      <%= user.username %>
+                    </span>
+                  </div>
+                </label>
+              <% end %>
+            <% end %>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between pt-6">
+          <a
+            href="/conversations"
+            class="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+          >
+            Cancel
+          </a>
+          <button
+            type="submit"
+            class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            Create Group
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

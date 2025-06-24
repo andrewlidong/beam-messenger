@@ -1,0 +1,93 @@
+<div class="flex h-screen bg-gray-50 dark:bg-gray-900">
+  <!-- Conversation Header -->
+  <div class="flex flex-col flex-1">
+    <div class="border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center">
+          <a href="/conversations" class="mr-4 text-gray-400 hover:text-gray-600">
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+            </svg>
+          </a>
+          <div class="flex items-center">
+            <div class="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center mr-3">
+              <%= if @conversation.type == "group" do %>
+                <svg class="h-4 w-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z"></path>
+                </svg>
+              <% else %>
+                <svg class="h-4 w-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
+                </svg>
+              <% end %>
+            </div>
+            <div>
+              <h1 class="text-lg font-semibold text-gray-900 dark:text-white">
+                <%= conversation_title(@conversation, @current_user) %>
+              </h1>
+              <p id="typing-indicator" class="text-sm text-gray-500 dark:text-gray-400 hidden"></p>
+            </div>
+          </div>
+        </div>
+        <div id="online-users" class="flex space-x-2"></div>
+      </div>
+    </div>
+
+    <!-- Messages Area -->
+    <div id="messages" class="flex-1 overflow-y-auto p-4 space-y-4">
+      <%= for message <- @messages do %>
+        <div class={"flex #{if message.sender_id == @current_user.id, do: "justify-end", else: "justify-start"}"}>
+          <div class={"max-w-xs lg:max-w-md px-4 py-2 rounded-lg #{if message.sender_id == @current_user.id, do: "bg-blue-600 text-white", else: "bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700"}"}>
+            <%= if @conversation.type == "group" && message.sender_id != @current_user.id do %>
+              <p class="text-xs font-medium mb-1 opacity-75">
+                <%= if message.sender, do: message.sender.username, else: "Unknown" %>
+              </p>
+            <% end %>
+            <p class="text-sm"><%= message.text %></p>
+            <p class={"text-xs mt-1 #{if message.sender_id == @current_user.id, do: "text-blue-100", else: "text-gray-500 dark:text-gray-400"}"}>
+              <%= format_timestamp(message.timestamp) %>
+            </p>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Message Input -->
+    <div class="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
+      <div class="flex items-center space-x-3">
+        <div class="flex-1">
+          <input
+            type="text"
+            id="message-input"
+            placeholder="Type a message..."
+            class="block w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500"
+          />
+        </div>
+        <button
+          id="send-button"
+          type="button"
+          class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          Send
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const conversationId = '<%= @conversation.id %>';
+  const userId = '<%= @current_user.id %>';
+  const username = '<%= @current_user.username %>';
+  const token = '<%= @token %>';
+  
+  // Initialize conversation chat
+  window.ConversationChat = {
+    conversationId: conversationId,
+    userId: userId,
+    username: username,
+    token: token
+  };
+});
+</script>

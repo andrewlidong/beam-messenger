@@ -31,7 +31,7 @@ defmodule MessengerWeb.Router do
   scope "/", MessengerWeb do
     pipe_through :browser
 
-    # Chat routes
+    # Chat routes (legacy public chat rooms)
     get "/", ChatController, :index
     resources "/chat", ChatController
     get "/chat/:room_id/history", ChatController, :history
@@ -53,6 +53,13 @@ defmodule MessengerWeb.Router do
   # -------------- Authenticated-only routes (profile / logout) -------
   scope "/", MessengerWeb do
     pipe_through [:browser, :require_authenticated_user]
+
+    # Private conversations and groups
+    get    "/conversations",           ConversationsController, :index
+    get    "/conversations/new-group", ConversationsController, :new_group
+    post   "/conversations/groups",    ConversationsController, :create_group
+    post   "/conversations/private",   ConversationsController, :create_private
+    get    "/conversations/:id",       ConversationsController, :show
 
     get    "/profile",               RegistrationController, :edit
     put    "/profile",               RegistrationController, :update

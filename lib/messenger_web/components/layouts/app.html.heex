@@ -43,6 +43,9 @@
 
       <!-- Auth links -->
       <%= if @current_user do %>
+        <.link href={~p"/conversations"} class="text-blue-600 hover:text-blue-800">
+          Messages
+        </.link>
         <span class="hidden sm:inline">Hello, <%= @current_user.username %></span>
         <.link href={~p"/logout"} method="delete" class="text-blue-600 hover:text-blue-800">
           Logout

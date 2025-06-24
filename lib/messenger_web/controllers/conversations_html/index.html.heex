@@ -1,0 +1,65 @@
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+  <div class="mx-auto max-w-4xl px-4 py-8">
+    <div class="mb-6 flex items-center justify-between">
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Messages</h1>
+      <div class="flex space-x-3">
+        <a href="/conversations/new-group" class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+          New Group
+        </a>
+      </div>
+    </div>
+
+    <div class="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800">
+      <%= if Enum.empty?(@conversations) do %>
+        <div class="p-8 text-center">
+          <div class="mx-auto h-12 w-12 text-gray-400">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h8m-4-4v8m6-10V6a2 2 0 00-2-2H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V6z"></path>
+            </svg>
+          </div>
+          <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No conversations</h3>
+          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Get started by creating a new group or starting a private conversation.</p>
+        </div>
+      <% else %>
+        <div class="divide-y divide-gray-200 dark:divide-gray-700">
+          <%= for conversation <- @conversations do %>
+            <a href={"/conversations/#{conversation.id}"} class="block hover:bg-gray-50 dark:hover:bg-gray-700">
+              <div class="flex items-center p-4">
+                <div class="flex-shrink-0">
+                  <div class="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center">
+                    <%= if conversation.type == "group" do %>
+                      <svg class="h-5 w-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z"></path>
+                      </svg>
+                    <% else %>
+                      <svg class="h-5 w-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
+                      </svg>
+                    <% end %>
+                  </div>
+                </div>
+                <div class="ml-4 flex-1 min-w-0">
+                  <div class="flex items-center justify-between">
+                    <p class="text-sm font-medium text-gray-900 dark:text-white truncate">
+                      <%= conversation_title(conversation, @current_user) %>
+                    </p>
+                    <%= if conversation.last_message_at do %>
+                      <p class="text-xs text-gray-500 dark:text-gray-400">
+                        <%= format_timestamp(conversation.last_message_at) %>
+                      </p>
+                    <% end %>
+                  </div>
+                  <%= if conversation.last_message_text do %>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 truncate">
+                      <%= truncate_message(conversation.last_message_text) %>
+                    </p>
+                  <% end %>
+                </div>
+              </div>
+            </a>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

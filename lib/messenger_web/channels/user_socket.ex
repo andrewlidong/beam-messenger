@@ -7,8 +7,10 @@ defmodule MessengerWeb.UserSocket do
   # assign values that can be accessed by your channel topics.
 
   ## Channels
-  # Register our chat channel to handle all chat:* topics
+  # Register our chat channel to handle all chat:* topics (public rooms)
   channel "chat:*", MessengerWeb.ChatChannel
+  # Register conversation channel for private messaging and groups
+  channel "conversation:*", MessengerWeb.ConversationChannel
 
   # Socket params are passed from the client and can
   # be used to verify and authenticate a user. After

@@ -35,6 +35,7 @@ import {Socket} from "phoenix"
 import {LiveSocket} from "phoenix_live_view"
 import topbar from "../vendor/topbar"
 import "./chat"        // depends on user_socket.js being evaluated first
+import "./conversation"  // private messaging and groups
 import darkMode from "./dark_mode.js"   // dark-/light-mode manager
 
 // Expose dark mode manager globally for debugging / other scripts

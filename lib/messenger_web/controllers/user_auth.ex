@@ -41,6 +41,7 @@ defmodule MessengerWeb.UserAuth do
     conn
     |> renew_session()
     |> put_session(:user_token, token)
+    |> put_session(:current_user, user)
     |> put_session(:live_socket_id, "users_sessions:#{Base.url_encode64(token)}")
     |> maybe_write_remember_me_cookie(token, params)
     |> put_resp_cookie("user_token", token, sign: true, max_age: @max_age)
@@ -89,9 +90,21 @@ defmodule MessengerWeb.UserAuth do
   Authenticates the user by looking into the session and remember me token.
   """
   def fetch_current_user(conn, _opts) do
-    {user_token, conn} = ensure_user_token(conn)
-    user = user_token && Accounts.get_user_by_session_token(user_token)
-    assign(conn, :current_user, user)
+    # First check if user is already in session
+    case get_session(conn, :current_user) do
+      nil ->
+        {user_token, conn} = ensure_user_token(conn)
+        user = user_token && Accounts.get_user_by_session_token(user_token)
+        
+        conn = 
+          conn
+          |> assign(:current_user, user)
+          |> put_session(:current_user, user)
+        
+        conn
+      user ->
+        assign(conn, :current_user, user)
+    end
   end
 
   defp ensure_user_token(conn) do
